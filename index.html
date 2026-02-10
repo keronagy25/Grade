@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>St-John Deacon School</title>
+  <link rel="icon" type="image/png" href="madrast elshmamsa.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background-color: #f4f1ea; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background-color: #4a0e0e; padding: 10px 60px; display: flex; justify-content: space-between; align-items: center; }
+    .search-link { color: #fff; text-decoration: none; font-size: 18px; }
+    .header-title { color: #fff; font-size: 24px; font-weight: 700; }
+    .header-logos { display: flex; gap: 15px; align-items: center; }
+    .header-logos img { width: 55px; height: 55px; object-fit: contain; }
+
+    main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 60px 20px; }
+    .quote { color: #34495e; font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 5px; max-width: 850px; line-height: 1.6; }
+    .subtitle { color: #7a1b1b; font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 30px; }
+
+    .search-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); max-width: 550px; width: 100%; text-align: center; }
+    .search-title { color: #7a1b1b; font-size: 26px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .search-icon { font-size: 24px; }
+    input { width: 100%; padding: 15px; font-size: 18px; font-family: 'Cairo', sans-serif; border: 1px solid #ddd; border-radius: 8px; outline: none; margin-bottom: 20px; text-align: right; background-color: #fff; color: #555; }
+    input::placeholder { color: #aaa; }
+    button { width: 100%; padding: 12px; font-size: 20px; font-family: 'Cairo', sans-serif; font-weight: 600; background-color: #7a1b1b; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+    button:hover { background-color: #5a1414; }
+
+    #result { margin-top: 30px; width: 100%; max-width: 550px; }
+    .student-card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-right: 5px solid #7a1b1b; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    footer { background-color: #4a0e0e; color: #fff; text-align: center; padding: 12px; font-size: 15px; }
+
+    @media (max-width: 768px) { header { padding: 10px 20px; } .quote { font-size: 22px; } .header-title { font-size: 18px; } .search-card { padding: 25px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="search-link">Search</a>
+  <h1 class="header-title">StJohnDeaconSchool</h1>
+  <div class="header-logos">
+    <img src="st john church logo - gold2.png" alt="Logo 1" />
+    <img src="madrast elshmamsa.png" alt="Logo 2" />
+  </div>
+</header>
+
+<main>
+  <p class="quote">
+    "أَيُّهَا الْحَبِيبُ، فِي كُلِّ شَيْءٍ أَرُومُ أَنْ تَكُونَ نَاجِحًا وَصَحِيحًا، كَمَا أَنَّ نَفْسَكَ نَاجِحَةٌ." (3 يو 1:2)
+  </p>
+  
+  <p class="subtitle">نتيجة مدرسة الشمامسة الترم الاول عام 2025-2026م</p>
+
+  <div class="search-card">
+    <h2 class="search-title">
+      الاستعلام عن النتيجة
+      <span class="search-icon">🔍</span>
+    </h2>
+    
+    <input type="text" id="searchInput" placeholder="اكتب اسمك أو رقم التليفون" autocomplete="off" />
+    <button onclick="search()">عرض النتيجة</button>
+  </div>
+
+  <div id="result"></div>
+</main>
+
+<footer>
+  © 2026 مدرسة الشمامسة بكنيسة القديس ماريوحنا الحبيب
+</footer>
+
+<script>
+let students = [];
+
+/* تحميل البيانات */
+async function loadData() {
+  try {
+    const response = await fetch('students.json');
+    students = await response.json();
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+}
+
+/* توحيد الحروف العربية */
+function normalizeArabic(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[إأآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[ًٌٍَُِّْ]/g, '') // إزالة التشكيل
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* البحث */
+function search() {
+  const inputField = document.getElementById('searchInput');
+  const resultBox = document.getElementById('result');
+
+  const rawInput = inputField.value.trim();
+  if (!rawInput) return;
+
+  const isPhone = /^\d+$/.test(rawInput);
+  const normalizedInput = normalizeArabic(rawInput);
+
+  // 🔴 لو اسم (مش رقم) لازم يكون ثنائي
+  if (!isPhone) {
+    const words = normalizedInput.split(' ');
+    if (words.length < 2) {
+      resultBox.innerHTML = `
+        <p style="text-align:center; color:#7a1b1b; font-weight:600;">
+          من فضلك اكتب الاسم ثنائي على الأقل (مثال: كيرلس ناجي)
+        </p>
+      `;
+      return;
+    }
+  }
+
+  const matched = students.filter(student => {
+    const normalizedName = normalizeArabic(student.full_name || '');
+    const phone = student.phone || '';
+
+    return normalizedName.includes(normalizedInput) || phone.includes(rawInput);
+  });
+
+  if (matched.length === 0) {
+    resultBox.innerHTML = `
+      <p style="text-align:center; color:#7a1b1b;">
+        لا توجد نتائج مطابقة.
+      </p>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  matched.forEach(student => {
+    const full_name = student.full_name || '-';
+    const phone = student.phone || '-';
+    const age = student.age || '-';
+    const gender = student.gender || '-';
+    const academic_year = student.academic_year || '-';
+    const deacon_rank = student.deacon_rank || '-';
+    const attendance_count = student.attendance_count || '-';
+    const evaluation = student.evaluation || '-';
+    const attendance_grade = student.attendance_grade || '-';
+    const hymns_grade = student.hymns_grade || '-';
+    const coptic_grade = student.coptic_grade || '-';
+    const theology_grade = student.theology_grade || '-';
+    const total = student.total || '-';
+
+    if (academic_year === 'حضانة') {
+      html += `
+        <div class="student-card">
+          <p><strong>الاسم:</strong> ${full_name}</p>
+          <p><strong>رقم التليفون:</strong> ${phone}</p>
+          <p><strong>السن:</strong> ${age}</p>
+          <p><strong>الجنس:</strong> ${gender}</p>
+          <p><strong>السنة الدراسية:</strong> ${academic_year}</p>
+          <p><strong>الرتبة الشماسية:</strong> ${deacon_rank}</p>
+          <p><strong>عدد مرات الحضور 8 :</strong> ${attendance_count}</p>
+          <p><strong>التقدير :</strong> ${evaluation}</p>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="student-card">
+          <p><strong>الاسم:</strong> ${full_name}</p>
+          <p><strong>رقم التليفون:</strong> ${phone}</p>
+          <p><strong>السن:</strong> ${age}</p>
+          <p><strong>الجنس:</strong> ${gender}</p>
+          <p><strong>السنة الدراسية:</strong> ${academic_year}</p>
+          <p><strong>الرتبة الشماسية:</strong> ${deacon_rank}</p>
+          <p><strong>عدد مرات الحضور 8 :</strong> ${attendance_count}</p>
+          <p><strong>درجة الحضور:</strong> ${attendance_grade}</p>
+          <p><strong>درجة الالحان 40 :</strong> ${hymns_grade}</p>
+          <p><strong>درجة القبطي 20 :</strong> ${coptic_grade}</p>
+          <p><strong>درجة الطقس 20 :</strong> ${theology_grade}</p>
+          <p><strong>المجموع:</strong> ${total}</p>
+        </div>
+      `;
+    }
+  });
+
+  html += `
+    <p style="text-align:center; margin-top:12px; font-weight:600;">
+      من فضلك احتفظ بالنتيجة كلقطة شاشة (screenshot)
+    </p>
+  `;
+
+  resultBox.innerHTML = html;
+}
+
+/* تحميل الداتا عند فتح الصفحة */
+window.onload = loadData;
+</script>
+</body>
+</html>
